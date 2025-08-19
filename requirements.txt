@@ -1,0 +1,49 @@
+# Sistema de Análise Jurídica com IA - Agentes Especializados
+# Dependências do projeto
+
+# Framework web
+streamlit>=1.28.0
+
+# Framework multi-agente
+agno>=0.0.45
+
+# Processamento de linguagem natural
+openai>=1.3.0
+tiktoken>=0.5.1
+
+# Processamento de PDFs
+PyPDF2>=3.0.1
+pymupdf>=1.23.0
+pytesseract>=0.3.10
+
+# Banco vetorial e embeddings
+lancedb>=0.3.1
+pyarrow>=13.0.0
+
+# Validação de dados
+pydantic>=2.4.0
+
+# Utilitários
+python-dotenv>=1.0.0
+asyncio-throttle>=1.0.2
+aiofiles>=23.2.1
+
+# Interface e visualização
+plotly>=5.17.0
+pandas>=2.1.0
+numpy>=1.24.0
+
+# Logging e monitoramento
+loguru>=0.7.2
+
+# Processamento de texto
+nltk>=3.8.1
+spacy>=3.7.0
+
+# OCR (opcional - para PDFs digitalizados)
+pillow>=10.0.0
+opencv-python>=4.8.0
+
+# Utilitários de sistema
+psutil>=5.9.0
+tqdm>=4.66.0
