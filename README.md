@@ -109,12 +109,6 @@ OPENAI_API_KEY=sua_chave_openai_aqui
 
 ## 👥 Equipe de Desenvolvimento
 
-### 👨‍💼 Autores
-**João Valério de Moura Júnior**  
-*Juiz Auxiliar da Presidência do TJPA*  
-📧 jvjmoura@gmail.com  
-🏛️ Tribunal de Justiça do Estado do Pará
-
 **Outro
 *Cargo tal *  
 📧 email tal 
@@ -161,19 +155,6 @@ Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](../L
 
 ## 🆘 Suporte
 
-Para dúvidas, sugestões ou problemas:
 
-- 📧 E-mail: jvjmoura@gmail.com
-- 🐛 Issues: [GitHub Issues](https://github.com/jvjmoura/ragTJPA/issues)
-- 📖 Documentação: [Wiki do Projeto](https://github.com/jvjmoura/ragTJPA/wiki)
-
-## 🏆 Reconhecimentos
-
-- **Tribunal de Justiça do Estado do Pará (TJPA)**
-- **Agno Framework** - Framework multi-agente
-- **OpenAI** - Modelos de linguagem GPT
-- **Streamlit** - Interface web
-
----
 
 *Desenvolvido com ❤️ para modernizar a análise jurídica no Brasil*
