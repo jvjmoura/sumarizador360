@@ -67,14 +67,21 @@ pip install -r requirements.txt
 
 3. Configure as variáveis de ambiente:
 ```bash
+cd backend
 cp .env.example .env
 # Edite o arquivo .env com sua chave da OpenAI
 ```
 
 4. Execute a aplicação:
 ```bash
-streamlit run app_streamlit_otimizado.py
+cd..
+python start.py
 ```
+5. Acesse a aplicação:
+
+- 🌐 Interface Web: http://localhost:8000
+- 📖 API Docs (Swagger): http://localhost:8000/docs
+- 📚 ReDoc: http://localhost:8000/redoc
 
 ## 🔧 Configuração
 

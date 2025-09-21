@@ -1,8 +1,9 @@
-# Sistema de Análise Jurídica com IA - Agentes Especializados
-# Dependências do projeto
+# FastAPI Backend - Sistema de Análise Jurídica com IA
+# Dependências atualizadas para FastAPI
 
 # Framework web
-streamlit>=1.28.0
+fastapi>=0.104.1
+uvicorn[standard]>=0.24.0
 
 # Framework multi-agente
 agno>=0.0.45
@@ -28,8 +29,7 @@ python-dotenv>=1.0.0
 asyncio-throttle>=1.0.2
 aiofiles>=23.2.1
 
-# Interface e visualização
-plotly>=5.17.0
+# Processamento de dados
 pandas>=2.1.0
 numpy>=1.24.0
 
@@ -47,3 +47,17 @@ opencv-python>=4.8.0
 # Utilitários de sistema
 psutil>=5.9.0
 tqdm>=4.66.0
+
+# Upload de arquivos
+python-multipart>=0.0.6
+
+# CORS e middleware
+python-jose[cryptography]>=3.3.0
+
+# WebSockets (para progress em tempo real)
+websockets>=12.0
+
+# Desenvolvimento
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+httpx>=0.25.0
