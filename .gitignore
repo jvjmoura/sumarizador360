@@ -1,0 +1,13 @@
+# Ignorar arquivos sensíveis
+backend/.env
+
+# Ignorar pastas temporárias e de cache
+__pycache__/
+**/__pycache__/
+tmp/
+logs/
+uploads/
+
+# Ignorar arquivos/pastas específicas
+backend/tmp/
+frontend/tmp/
