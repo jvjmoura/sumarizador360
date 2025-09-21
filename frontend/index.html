@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚖️ Sistema de Análise Jurídica com IA</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-balance-scale"></i>
+                    <h1>Sistema de Análise Jurídica</h1>
+                    <span class="version">v2.0</span>
+                </div>
+                <nav class="nav">
+                    <a href="#home" class="nav-link active" onclick="showSection('home')">
+                        <i class="fas fa-home"></i> Início
+                    </a>
+                    <a href="#results" class="nav-link" onclick="showSection('results')">
+                        <i class="fas fa-chart-bar"></i> Resultados
+                    </a>
+                    <a href="#docs" class="nav-link" onclick="showSection('docs')">
+                        <i class="fas fa-book"></i> Documentação
+                    </a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Home Section -->
+            <section id="home" class="section active">
+                <div class="container">
+                    <!-- Hero Section -->
+                    <div class="hero">
+                        <h2>Análise Automatizada de Processos Jurídicos</h2>
+                        <p>Sistema multi-agente com IA para análise detalhada de documentos processuais</p>
+
+                        <!-- Performance Metrics -->
+                        <div class="metrics">
+                            <div class="metric">
+                                <i class="fas fa-clock"></i>
+                                <span class="metric-value">~1-2 min</span>
+                                <span class="metric-label">Tempo de análise</span>
+                            </div>
+                            <div class="metric">
+                                <i class="fas fa-dollar-sign"></i>
+                                <span class="metric-value">75%</span>
+                                <span class="metric-label">Redução de custo</span>
+                            </div>
+                            <div class="metric">
+                                <i class="fas fa-robot"></i>
+                                <span class="metric-value">4 Agentes</span>
+                                <span class="metric-label">Execução paralela</span>
+                            </div>
+                            <div class="metric">
+                                <i class="fas fa-star"></i>
+                                <span class="metric-value">90%</span>
+                                <span class="metric-label">Qualidade mantida</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upload Section -->
+                    <div class="upload-section">
+                        <div class="upload-card">
+                            <h3><i class="fas fa-cloud-upload-alt"></i> Upload do Processo</h3>
+
+                            <!-- File Upload -->
+                            <div class="file-upload" id="fileUpload">
+                                <div class="upload-area" ondrop="dropHandler(event)" ondragover="dragOverHandler(event)" ondragenter="dragEnterHandler(event)" ondragleave="dragLeaveHandler(event)">
+                                    <i class="fas fa-file-pdf upload-icon"></i>
+                                    <p class="upload-text">
+                                        <strong>Clique aqui</strong> ou arraste o arquivo PDF
+                                    </p>
+                                    <p class="upload-subtext">Máximo 50MB • Apenas arquivos PDF</p>
+                                    <input type="file" id="fileInput" accept=".pdf" onchange="handleFileSelect(event)">
+                                </div>
+                            </div>
+
+                            <!-- Selected File Info -->
+                            <div class="file-info" id="fileInfo" style="display: none;">
+                                <div class="file-details">
+                                    <i class="fas fa-file-pdf"></i>
+                                    <div>
+                                        <p class="file-name" id="fileName"></p>
+                                        <p class="file-size" id="fileSize"></p>
+                                    </div>
+                                    <button class="btn-remove" onclick="removeFile()">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Agent Selection -->
+                            <div class="agent-selection">
+                                <h4><i class="fas fa-users"></i> Selecionar Agentes</h4>
+                                <div class="agents-grid">
+                                    <label class="agent-card">
+                                        <input type="checkbox" name="agents" value="defesa" checked>
+                                        <div class="agent-content">
+                                            <i class="fas fa-shield-alt"></i>
+                                            <h5>Agente Defesa</h5>
+                                            <p>Analisa argumentos defensivos e teses da defesa</p>
+                                        </div>
+                                    </label>
+
+                                    <label class="agent-card">
+                                        <input type="checkbox" name="agents" value="acusacao" checked>
+                                        <div class="agent-content">
+                                            <i class="fas fa-gavel"></i>
+                                            <h5>Agente Acusação</h5>
+                                            <p>Examina denúncia e elementos acusatórios</p>
+                                        </div>
+                                    </label>
+
+                                    <label class="agent-card">
+                                        <input type="checkbox" name="agents" value="pesquisa" checked>
+                                        <div class="agent-content">
+                                            <i class="fas fa-search"></i>
+                                            <h5>Agente Pesquisa</h5>
+                                            <p>Identifica legislação e jurisprudência</p>
+                                        </div>
+                                    </label>
+
+                                    <label class="agent-card">
+                                        <input type="checkbox" name="agents" value="decisoes" checked>
+                                        <div class="agent-content">
+                                            <i class="fas fa-balance-scale"></i>
+                                            <h5>Agente Decisões</h5>
+                                            <p>Analisa sentenças e fundamentação judicial</p>
+                                        </div>
+                                    </label>
+
+                                    <label class="agent-card">
+                                        <input type="checkbox" name="agents" value="relator">
+                                        <div class="agent-content">
+                                            <i class="fas fa-file-alt"></i>
+                                            <h5>Agente Relator</h5>
+                                            <p>Consolida informações em relatório único</p>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <!-- Quick Select Buttons -->
+                                <div class="quick-select">
+                                    <button class="btn-secondary" onclick="selectAllAgents()">
+                                        <i class="fas fa-check-double"></i> Selecionar Todos
+                                    </button>
+                                    <button class="btn-secondary" onclick="clearAllAgents()">
+                                        <i class="fas fa-times"></i> Limpar Seleção
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Upload Button -->
+                            <button class="btn-primary btn-upload" id="uploadBtn" onclick="startAnalysis()" disabled>
+                                <i class="fas fa-play"></i>
+                                Iniciar Análise
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Progress Section -->
+                    <div class="progress-section" id="progressSection" style="display: none;">
+                        <div class="progress-card">
+                            <h3><i class="fas fa-cog fa-spin"></i> Processando Análise</h3>
+
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+
+                            <div class="progress-info">
+                                <span class="progress-text" id="progressText">Preparando análise...</span>
+                                <span class="progress-percent" id="progressPercent">0%</span>
+                            </div>
+
+                            <div class="task-info">
+                                <p><strong>ID da Tarefa:</strong> <span id="taskId"></span></p>
+                                <p><strong>Status:</strong> <span id="taskStatus">pending</span></p>
+                            </div>
+
+                            <button class="btn-secondary" onclick="cancelAnalysis()">
+                                <i class="fas fa-stop"></i> Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section id="results" class="section">
+                <div class="container">
+                    <h2><i class="fas fa-chart-bar"></i> Resultados da Análise</h2>
+
+                    <div class="results-container" id="resultsContainer">
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <h3>Nenhuma análise realizada</h3>
+                            <p>Faça upload de um processo para ver os resultados aqui</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Documentation Section -->
+            <section id="docs" class="section">
+                <div class="container">
+                    <h2><i class="fas fa-book"></i> Documentação da API</h2>
+
+                    <div class="docs-grid">
+                        <div class="doc-card">
+                            <h3><i class="fas fa-rocket"></i> Quick Start</h3>
+                            <p>Guia rápido para começar a usar o sistema</p>
+                            <a href="/docs" class="btn-primary">Ver Documentação</a>
+                        </div>
+
+                        <div class="doc-card">
+                            <h3><i class="fas fa-code"></i> API Reference</h3>
+                            <p>Referência completa dos endpoints da API</p>
+                            <a href="/redoc" class="btn-primary">Ver ReDoc</a>
+                        </div>
+
+                        <div class="doc-card">
+                            <h3><i class="fas fa-robot"></i> Agentes</h3>
+                            <p>Informações detalhadas sobre cada agente especializado</p>
+                            <button class="btn-primary" onclick="loadAgentsInfo()">Ver Agentes</button>
+                        </div>
+                    </div>
+
+                    <div class="agents-info" id="agentsInfo" style="display: none;">
+                        <!-- Agents info will be loaded here -->
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <p>&copy; 2024 Sistema de Análise Jurídica. Desenvolvido com ❤️ para modernizar a análise jurídica no Brasil</p>
+                <div class="footer-links">
+                    <a href="#" onclick="showSection('docs')">Documentação</a>
+                    <a href="/docs">API</a>
+                    <a href="https://github.com" target="_blank">GitHub</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Notification System -->
+    <div class="notification-container" id="notificationContainer"></div>
+
+    <!-- Scripts -->
+    <script src="script.js"></script>
+</body>
+</html>
