@@ -56,8 +56,8 @@ Sistema multi-agente para análise automatizada de processos jurídicos utilizan
 
 1. Clone o repositório:
 ```bash
-git clone https://github.com/jvjmoura/ragTJPA.git
-cd ragTJPA/agentes
+git clone -b feature/Atualiza-estrutura https://github.com/A-juli07/agentes-.git
+cd agentes-
 ```
 
 2. Instale as dependências:
