@@ -6,7 +6,7 @@ fastapi>=0.104.1
 uvicorn[standard]>=0.24.0
 
 # Framework multi-agente
-agno>=0.0.45
+agno==1.1.9
 
 # Processamento de linguagem natural
 openai>=1.3.0
@@ -61,3 +61,4 @@ websockets>=12.0
 pytest>=7.4.0
 pytest-asyncio>=0.21.0
 httpx>=0.25.0
+pypdf==6.0.0
