@@ -98,6 +98,10 @@ async def list_agents():
                 "name": "⚖️ Agente Decisões Judiciais",
                 "description": "Analisa sentenças, decisões e fundamentação do juiz"
             },
+            "web": {
+                "name": "🌐 Agente Pesquisa Web",
+                "description": "Pesquisa jurisprudências recentes, doutrina e teoria jurídica atual na web"
+            },
             "relator": {
                 "name": "📋 Agente Relator Consolidado",
                 "description": "Consolida informações de todos os agentes em relatório único"

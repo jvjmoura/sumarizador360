@@ -4,6 +4,7 @@ from agno.knowledge.pdf import PDFKnowledgeBase
 from agno.models.openai import OpenAIChat
 from agno.vectordb.lancedb import LanceDb
 from agno.vectordb.search import SearchType
+from agno.tools.tavily import TavilyTools
 import asyncio
 from typing import Dict, List
 from models import *
@@ -147,6 +148,43 @@ def setup_agents(knowledge_base):
         """,
     )
 
+    # Agente Web para Pesquisa Complementar
+    agents["web"] = Agent(
+        model=OpenAIChat(id="gpt-4o-mini"),
+        response_model=RespostaWeb,
+        tools=[TavilyTools()],
+        instructions="""
+        VOCÊ É UM PESQUISADOR JURÍDICO ESPECIALIZADO EM PESQUISA WEB COMPLEMENTAR.
+
+        IMPORTANTE: Faça pesquisas específicas e direcionadas baseadas no crime identificado no processo.
+
+        SUAS FUNÇÕES:
+        • IDENTIFICAR o principal crime/artigo mencionado no processo
+        • PESQUISAR jurisprudências recentes (2024-2025) dos tribunais superiores
+        • BUSCAR teoria jurídica e doutrina atual sobre o tema
+        • ENCONTRAR mudanças recentes na legislação
+        • EXPLICAR conceitos jurídicos fundamentais
+        • SEMPRE incluir os links das fontes consultadas
+
+        METODOLOGIA:
+        1. Identifique rapidamente o tipo de crime
+        2. Faça 2-3 pesquisas específicas:
+           - "Jurisprudência STF STJ [crime] 2024 2025"
+           - "Doutrina penal [crime] teoria atual"
+           - "Legislação [crime] mudanças recentes"
+
+        IMPORTANTE:
+        • Foque em conteúdo de 2024-2025
+        • SEMPRE inclua URLs das fontes
+        • Seja educativo e explicativo
+        • Complemente o conhecimento do processo
+        """,
+        add_references=False,
+        search_knowledge=False,
+        show_tool_calls=True,
+        markdown=True,
+    )
+
     # Agente Relator Consolidado
     agents["relator"] = Agent(
         **base_config,
@@ -189,6 +227,7 @@ QUERIES = {
     "acusacao": "Analise minuciosamente o processo criminal nos autos e extraia TODAS as informações sobre: denúncia completa, alegações finais do MP, depoimentos de testemunhas de acusação, laudos periciais, provas materiais, tipificação penal, materialidade, autoria e pedidos do Ministério Público",
     "pesquisa": "Analise minuciosamente o processo criminal nos autos e extraia TODAS as citações de: legislação específica, artigos do CP e CPP, jurisprudências mencionadas, súmulas citadas, doutrinas referenciadas e decisões judiciais mencionadas pelas partes",
     "decisoes": "Analise minuciosamente o processo criminal nos autos e extraia TODAS as informações sobre: sentenças proferidas, decisões sobre prisões e liberdades, despachos relevantes, dosimetria da pena, fundamentação jurídica das decisões, análise das provas pelo magistrado e medidas cautelares aplicadas",
+    "web": "Primeiro identifique o principal crime e artigo do CP mencionado neste processo. Depois faça pesquisas específicas na web sobre: jurisprudências recentes (2024-2025) dos tribunais superiores sobre este crime, teoria jurídica e doutrina atual, mudanças recentes na legislação penal, conceitos jurídicos fundamentais relacionados ao tema. SEMPRE inclua os links das fontes onde encontrou as informações.",
     "relator": "Consolidação de informações dos outros agentes (executado separadamente)"
 }
 
@@ -197,7 +236,13 @@ def executar_agente_sync(agent, query):
     """Executa um agente de forma síncrona"""
     try:
         run_response = agent.run(query)
-        return run_response.content
+        # Se o agente tem response_model definido, retorna o objeto estruturado
+        if hasattr(agent, 'response_model') and agent.response_model and hasattr(run_response, 'content'):
+            # O conteúdo já é o objeto do modelo quando response_model está definido
+            return run_response.content
+        else:
+            # Para agentes sem response_model, retorna string
+            return run_response.content if hasattr(run_response, 'content') else str(run_response)
     except Exception as e:
         return f"Erro: {str(e)}"
 
@@ -243,6 +288,9 @@ def executar_relator_consolidado(agent_relator, resultados_outros_agentes):
 
         ANÁLISE DAS DECISÕES:
         {str(resultados_outros_agentes.get('decisoes', 'Não disponível'))}
+
+        PESQUISA WEB COMPLEMENTAR:
+        {str(resultados_outros_agentes.get('web', 'Não disponível'))}
 
         IMPORTANTE: Apenas consolide e organize as informações. NÃO faça juízo de valor.
         """

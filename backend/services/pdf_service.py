@@ -6,9 +6,19 @@ import pymupdf  # fitz
 import pytesseract
 from PIL import Image
 import io
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.lib.colors import black, blue, gray
+from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_JUSTIFY
+from io import BytesIO
+import json
+from datetime import datetime
+from typing import Dict, Any
 
-class PDFService:
-    """Serviço para processamento de PDFs"""
+class PDFProcessingService:
+    """Serviço para processamento de PDFs de entrada"""
 
     @staticmethod
     def validate_pdf(file_path: str) -> bool:
@@ -95,12 +105,12 @@ class PDFService:
         """
         try:
             # Primeira tentativa: PyMuPDF
-            text = PDFService.extract_text_pymupdf(file_path)
+            text = PDFProcessingService.extract_text_pymupdf(file_path)
 
             # Se texto é muito pequeno e OCR está habilitado
             if len(text.strip()) < 100 and use_ocr:
                 try:
-                    ocr_text = PDFService.extract_text_with_ocr(file_path)
+                    ocr_text = PDFProcessingService.extract_text_with_ocr(file_path)
                     if len(ocr_text.strip()) > len(text.strip()):
                         return ocr_text
                 except Exception:
@@ -111,9 +121,242 @@ class PDFService:
         except Exception:
             # Fallback para PyPDF2
             try:
-                return PDFService.extract_text_pypdf2(file_path)
+                return PDFProcessingService.extract_text_pypdf2(file_path)
             except Exception as e:
                 raise Exception(f"Falha em todos os métodos de extração: {str(e)}")
+
+class PDFGenerationService:
+    """Serviço para geração de PDFs dos resultados da análise"""
+
+    def __init__(self):
+        self.styles = getSampleStyleSheet()
+        self._setup_custom_styles()
+
+    def _setup_custom_styles(self):
+        """Configurar estilos personalizados para o PDF"""
+        # Título principal
+        self.styles.add(ParagraphStyle(
+            name='MainTitle',
+            parent=self.styles['Title'],
+            fontSize=20,
+            spaceAfter=30,
+            alignment=TA_CENTER,
+            textColor=blue
+        ))
+
+        # Título de seção
+        self.styles.add(ParagraphStyle(
+            name='SectionTitle',
+            parent=self.styles['Heading1'],
+            fontSize=16,
+            spaceAfter=12,
+            spaceBefore=24,
+            textColor=blue
+        ))
+
+        # Subtítulo
+        self.styles.add(ParagraphStyle(
+            name='SubTitle',
+            parent=self.styles['Heading2'],
+            fontSize=14,
+            spaceAfter=6,
+            spaceBefore=12,
+            textColor=black
+        ))
+
+        # Texto normal justificado
+        self.styles.add(ParagraphStyle(
+            name='JustifiedBody',
+            parent=self.styles['Normal'],
+            alignment=TA_JUSTIFY,
+            spaceAfter=6
+        ))
+
+    def generate_agent_pdf(self, agent_name: str, agent_data: Dict[str, Any], task_id: str) -> BytesIO:
+        """Gerar PDF para um agente específico"""
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4,
+                              rightMargin=72, leftMargin=72,
+                              topMargin=72, bottomMargin=18)
+
+        # Conteúdo do PDF
+        story = []
+
+        # Cabeçalho
+        story.append(Paragraph("⚖️ Sistema de Análise Jurídica", self.styles['MainTitle']))
+        story.append(Spacer(1, 20))
+
+        # Informações do relatório
+        info_data = [
+            ['Agente:', self._get_agent_display_name(agent_name)],
+            ['ID da Tarefa:', task_id],
+            ['Data/Hora:', datetime.now().strftime("%d/%m/%Y às %H:%M:%S")],
+            ['Tipo de Relatório:', 'Análise Individual por Agente']
+        ]
+
+        info_table = Table(info_data, colWidths=[2*inch, 4*inch])
+        info_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ]))
+
+        story.append(info_table)
+        story.append(Spacer(1, 30))
+
+        # Conteúdo da análise
+        story.append(Paragraph(f"Resultado da Análise - {self._get_agent_display_name(agent_name)}",
+                              self.styles['SectionTitle']))
+
+        if isinstance(agent_data, dict):
+            for key, value in agent_data.items():
+                if value and value != '' and not (isinstance(value, list) and len(value) == 0):
+                    # Título do campo
+                    field_title = self._format_field_name(key)
+                    story.append(Paragraph(field_title, self.styles['SubTitle']))
+
+                    # Conteúdo do campo
+                    if isinstance(value, list):
+                        for item in value:
+                            story.append(Paragraph(f"• {str(item)}", self.styles['JustifiedBody']))
+                    else:
+                        story.append(Paragraph(str(value), self.styles['JustifiedBody']))
+
+                    story.append(Spacer(1, 12))
+        else:
+            story.append(Paragraph(str(agent_data), self.styles['JustifiedBody']))
+
+        # Rodapé
+        story.append(Spacer(1, 30))
+        story.append(Paragraph("Sistema de Análise Jurídica - Relatório gerado automaticamente",
+                              self.styles['Normal']))
+
+        # Gerar PDF
+        doc.build(story)
+        buffer.seek(0)
+        return buffer
+
+    def generate_combined_pdf(self, all_results: Dict[str, Any], task_id: str) -> BytesIO:
+        """Gerar PDF consolidado com todos os resultados"""
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4,
+                              rightMargin=72, leftMargin=72,
+                              topMargin=72, bottomMargin=18)
+
+        story = []
+
+        # Cabeçalho
+        story.append(Paragraph("⚖️ Sistema de Análise Jurídica", self.styles['MainTitle']))
+        story.append(Paragraph("Relatório Consolidado de Análise", self.styles['Title']))
+        story.append(Spacer(1, 20))
+
+        # Informações do relatório
+        info_data = [
+            ['ID da Tarefa:', task_id],
+            ['Data/Hora:', datetime.now().strftime("%d/%m/%Y às %H:%M:%S")],
+            ['Tipo de Relatório:', 'Análise Completa Multi-Agente'],
+            ['Agentes Executados:', ', '.join([self._get_agent_display_name(agent) for agent in all_results.keys()])]
+        ]
+
+        info_table = Table(info_data, colWidths=[2*inch, 4*inch])
+        info_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ]))
+
+        story.append(info_table)
+        story.append(Spacer(1, 30))
+
+        # Sumário executivo
+        story.append(Paragraph("Sumário Executivo", self.styles['SectionTitle']))
+        story.append(Paragraph(
+            f"Este relatório apresenta a análise automatizada de um processo jurídico realizada por "
+            f"{len(all_results)} agentes especializados. Cada agente analisou o documento sob sua "
+            f"perspectiva específica, extraindo informações relevantes para uma compreensão abrangente do caso.",
+            self.styles['JustifiedBody']
+        ))
+        story.append(Spacer(1, 20))
+
+        # Ordem de exibição dos agentes
+        agent_order = ['defesa', 'acusacao', 'pesquisa', 'decisoes', 'web', 'relator']
+
+        # Processar cada agente
+        for agent_key in agent_order:
+            if agent_key in all_results:
+                agent_data = all_results[agent_key]
+
+                # Título do agente
+                story.append(Paragraph(self._get_agent_display_name(agent_key),
+                                     self.styles['SectionTitle']))
+
+                if isinstance(agent_data, dict):
+                    for key, value in agent_data.items():
+                        if value and value != '' and not (isinstance(value, list) and len(value) == 0):
+                            # Título do campo
+                            field_title = self._format_field_name(key)
+                            story.append(Paragraph(field_title, self.styles['SubTitle']))
+
+                            # Conteúdo do campo
+                            if isinstance(value, list):
+                                for item in value:
+                                    story.append(Paragraph(f"• {str(item)}", self.styles['JustifiedBody']))
+                            else:
+                                story.append(Paragraph(str(value), self.styles['JustifiedBody']))
+
+                            story.append(Spacer(1, 8))
+                else:
+                    story.append(Paragraph(str(agent_data), self.styles['JustifiedBody']))
+
+                story.append(Spacer(1, 20))
+
+        # Rodapé
+        story.append(Spacer(1, 30))
+        story.append(Paragraph("Sistema de Análise Jurídica - Relatório consolidado gerado automaticamente",
+                              self.styles['Normal']))
+
+        # Gerar PDF
+        doc.build(story)
+        buffer.seek(0)
+        return buffer
+
+    def _get_agent_display_name(self, agent_key: str) -> str:
+        """Obter nome de exibição do agente"""
+        agent_names = {
+            'defesa': '🛡️ Agente Defesa',
+            'acusacao': '⚖️ Agente Acusação',
+            'pesquisa': '📚 Agente Pesquisa Jurídica',
+            'decisoes': '⚖️ Agente Decisões Judiciais',
+            'web': '🌐 Agente Pesquisa Web',
+            'relator': '📋 Agente Relator Consolidado'
+        }
+        return agent_names.get(agent_key, f'Agente {agent_key.title()}')
+
+    def _format_field_name(self, key: str) -> str:
+        """Formatar nome do campo para exibição"""
+        field_names = {
+            'resposta_acusacao': 'Resposta à Acusação',
+            'alegacoes_finais': 'Alegações Finais',
+            'advogado_responsavel': 'Advogado Responsável',
+            'teses_defensivas': 'Teses Defensivas',
+            'vicios_processuais': 'Vícios Processuais',
+            'denuncia_completa': 'Denúncia Completa',
+            'promotor_responsavel': 'Promotor Responsável',
+            'tipificacao_penal': 'Tipificação Penal',
+            'sentenca_final': 'Sentença Final',
+            'juiz_responsavel': 'Juiz Responsável',
+            'fundamentacao_legal': 'Fundamentação Legal',
+            'jurisprudencia_stf': 'Jurisprudência STF',
+            'numero_processo': 'Número do Processo',
+            'natureza_acao': 'Natureza da Ação'
+        }
+
+        return field_names.get(key, key.replace('_', ' ').title())
+
+# Manter as classes originais para compatibilidade
+PDFService = PDFProcessingService
 
 class FileService:
     """Serviço para gerenciamento de arquivos"""

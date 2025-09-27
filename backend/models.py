@@ -52,6 +52,16 @@ class RespostaDecisoes(BaseModel):
     medidas_aplicadas: List[str] = Field(default=[], description="Medidas aplicadas")
     cronologia_decisoes: List[str] = Field(default=[], description="Cronologia das decisões")
 
+class RespostaWeb(BaseModel):
+    crime_identificado: str = Field(..., description="Tipo de crime identificado no processo")
+    jurisprudencias_recentes: List[str] = Field(default=[], description="Jurisprudências recentes dos tribunais superiores")
+    teoria_doutrina: List[str] = Field(default=[], description="Teoria jurídica e doutrina atual")
+    mudancas_legislacao: List[str] = Field(default=[], description="Mudanças recentes na legislação")
+    conceitos_fundamentais: str = Field(..., description="Conceitos jurídicos fundamentais explicados")
+    entendimentos_atuais: List[str] = Field(default=[], description="Entendimentos doutrinários atuais")
+    fontes_consultadas: List[str] = Field(default=[], description="Links e fontes das pesquisas realizadas")
+    material_educativo: str = Field(..., description="Material educativo sobre os institutos jurídicos")
+
 class RelatorioConsolidado(BaseModel):
     """Relatório consolidado neutro de todos os agentes"""
     # Identificação do Processo
@@ -76,6 +86,12 @@ class RelatorioConsolidado(BaseModel):
     jurisprudencia_consolidada: str = Field(..., description="Toda jurisprudência citada consolidada")
     sumulas_consolidadas: List[str] = Field(default=[], description="Todas as súmulas citadas")
     doutrina_consolidada: List[str] = Field(default=[], description="Toda doutrina citada")
+
+    # Consolidação da Pesquisa Web
+    pesquisa_web_consolidada: str = Field(..., description="Pesquisa web complementar sobre o processo")
+    jurisprudencias_atuais: List[str] = Field(default=[], description="Jurisprudências recentes encontradas na web")
+    teoria_moderna: List[str] = Field(default=[], description="Teoria jurídica moderna sobre o tema")
+    fontes_web: List[str] = Field(default=[], description="Fontes web consultadas")
 
     # Consolidação das Decisões
     decisoes_consolidadas: str = Field(..., description="Todas as decisões judiciais consolidadas")

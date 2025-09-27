@@ -354,15 +354,28 @@ function displayResults(results) {
         return;
     }
 
-    let html = '<div class="results-grid">';
+    let html = '';
+
+    // Botão para baixar todos os resultados
+    html += `
+        <div class="download-all-section">
+            <button class="btn-download-all" onclick="downloadCombinedPDF()">
+                <i class="fas fa-download"></i>
+                Baixar Relatório Completo
+            </button>
+        </div>
+    `;
+
+    html += '<div class="results-grid">';
 
     // Ordem de exibição dos agentes
-    const agentOrder = ['defesa', 'acusacao', 'pesquisa', 'decisoes', 'relator'];
+    const agentOrder = ['defesa', 'acusacao', 'pesquisa', 'decisoes', 'web', 'relator'];
     const agentNames = {
         'defesa': '🛡️ Agente Defesa',
         'acusacao': '⚖️ Agente Acusação',
         'pesquisa': '📚 Agente Pesquisa Jurídica',
         'decisoes': '⚖️ Agente Decisões Judiciais',
+        'web': '🌐 Agente Pesquisa Web',
         'relator': '📋 Agente Relator Consolidado'
     };
 
@@ -394,8 +407,8 @@ function createAgentResultCard(agentKey, agentName, result) {
         <div class="result-card">
             <div class="result-header">
                 <h3>${agentName}</h3>
-                <button class="btn-download" onclick="downloadAgentResult('${agentKey}', '${agentName}')">
-                    <i class="fas fa-download"></i>
+                <button class="btn-download" onclick="downloadAgentPDF('${agentKey}', '${agentName}')" title="Baixar PDF do ${agentName}">
+                    <i class="fas fa-file-pdf"></i>
                 </button>
             </div>
             <div class="result-content">
@@ -415,7 +428,8 @@ function formatAgentResult(agentKey, result) {
         let html = '<div class="structured-result">';
 
         for (const [key, value] of Object.entries(result)) {
-            if (value && value !== '' && !(Array.isArray(value) && value.length === 0)) {
+            // Incluir campos com valores null, boolean ou não vazios
+            if (value !== undefined && value !== '' && !(Array.isArray(value) && value.length === 0)) {
                 html += `
                     <div class="result-field">
                         <h4>${formatFieldName(key)}</h4>
@@ -447,7 +461,19 @@ function formatFieldName(key) {
         'fundamentacao_legal': 'Fundamentação Legal',
         'jurisprudencia_stf': 'Jurisprudência STF',
         'numero_processo': 'Número do Processo',
-        'natureza_acao': 'Natureza da Ação'
+        'natureza_acao': 'Natureza da Ação',
+        'pena_fixada': 'Pena Fixada',
+        'regime_cumprimento': 'Regime de Cumprimento',
+        'recurso_em_liberdade': 'Recurso em Liberdade',
+        'manutencao_prisao': 'Manutenção da Prisão',
+        'dosimetria_completa': 'Dosimetria da Pena',
+        'decisoes_prisao': 'Decisões sobre Prisão',
+        'fundamentacao_juridica': 'Fundamentação Jurídica',
+        'analise_provas': 'Análise das Provas',
+        'despachos_relevantes': 'Despachos Relevantes',
+        'recursos_cabiveis': 'Recursos Cabíveis',
+        'medidas_aplicadas': 'Medidas Aplicadas',
+        'cronologia_decisoes': 'Cronologia das Decisões'
     };
 
     return fieldNames[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
@@ -464,6 +490,14 @@ function formatFieldValue(value) {
         `;
     }
 
+    if (value === null) {
+        return '<p class="empty-field">Não informado</p>';
+    }
+
+    if (typeof value === 'boolean') {
+        return `<p class="result-text">${value ? 'Sim' : 'Não'}</p>`;
+    }
+
     if (typeof value === 'string') {
         return `<p class="result-text">${value}</p>`;
     }
@@ -471,37 +505,69 @@ function formatFieldValue(value) {
     return `<p class="result-text">${value}</p>`;
 }
 
-async function downloadAgentResult(agentKey, agentName) {
+async function downloadAgentPDF(agentKey, agentName) {
     if (!currentTaskId) return;
 
     try {
-        const response = await fetch(`${API_BASE_URL}/result/${currentTaskId}/agent/${agentKey}`);
+        showNotification(`Gerando PDF do ${agentName}...`, 'info');
+
+        const response = await fetch(`${API_BASE_URL}/result/${currentTaskId}/agent/${agentKey}/pdf`);
 
         if (!response.ok) {
-            throw new Error('Erro ao baixar resultado');
+            throw new Error('Erro ao gerar PDF');
         }
 
-        const data = await response.json();
-
-        // Criar arquivo de texto
-        const content = JSON.stringify(data.result, null, 2);
-        const blob = new Blob([content], { type: 'application/json' });
+        // Criar blob do PDF
+        const blob = await response.blob();
         const url = URL.createObjectURL(blob);
 
         // Criar link de download
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${agentKey}_${currentTaskId}.json`;
+        a.download = `${agentKey}_${currentTaskId}.pdf`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
-        showNotification(`Download do ${agentName} iniciado`, 'success');
+        showNotification(`PDF do ${agentName} baixado com sucesso`, 'success');
 
     } catch (error) {
-        console.error('Erro no download:', error);
-        showNotification(`Erro no download: ${error.message}`, 'error');
+        console.error('Erro no download do PDF:', error);
+        showNotification(`Erro ao baixar PDF: ${error.message}`, 'error');
+    }
+}
+
+async function downloadCombinedPDF() {
+    if (!currentTaskId) return;
+
+    try {
+        showNotification('Gerando relatório completo...', 'info');
+
+        const response = await fetch(`${API_BASE_URL}/result/${currentTaskId}/pdf`);
+
+        if (!response.ok) {
+            throw new Error('Erro ao gerar PDF consolidado');
+        }
+
+        // Criar blob do PDF
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+
+        // Criar link de download
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `analise_completa_${currentTaskId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        showNotification('Relatório completo baixado com sucesso', 'success');
+
+    } catch (error) {
+        console.error('Erro no download do PDF consolidado:', error);
+        showNotification(`Erro ao baixar relatório: ${error.message}`, 'error');
     }
 }
 
@@ -593,14 +659,46 @@ function addDynamicStyles() {
             background: var(--primary-color);
             color: white;
             border: none;
-            padding: var(--spacing-2);
+            padding: var(--spacing-2) var(--spacing-3);
             border-radius: var(--border-radius-sm);
             cursor: pointer;
             transition: var(--transition-fast);
+            font-size: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .btn-download:hover {
             background: var(--primary-dark);
+        }
+
+        .download-all-section {
+            margin-bottom: var(--spacing-6);
+            text-align: center;
+        }
+
+        .btn-download-all {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: var(--spacing-4) var(--spacing-6);
+            border-radius: var(--border-radius-lg);
+            cursor: pointer;
+            transition: var(--transition-fast);
+            font-size: 16px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-download-all:hover {
+            background: linear-gradient(135deg, #5a67d8 0%, #6a4c93 100%);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
         }
 
         .result-content {

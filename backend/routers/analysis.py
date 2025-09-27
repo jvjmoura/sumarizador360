@@ -1,5 +1,5 @@
 from fastapi import APIRouter, File, UploadFile, HTTPException, BackgroundTasks
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 import tempfile
 import os
 import uuid
@@ -10,6 +10,7 @@ import json
 # Importar serviços e modelos
 from models import *
 from agents import setup_knowledge_base, setup_agents, executar_agentes_paralelo, executar_relator_consolidado
+from services.pdf_service import PDFGenerationService
 
 router = APIRouter()
 
@@ -20,7 +21,7 @@ tasks_storage: Dict[str, AnalysisResult] = {}
 async def upload_file(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
-    agents: str = "defesa,acusacao,pesquisa,decisoes"
+    agents: str = "defesa,acusacao,pesquisa,decisoes,web"
 ):
     """
     Upload de arquivo PDF e início da análise em background
@@ -31,7 +32,7 @@ async def upload_file(
 
     # Validar agentes
     agent_list = [agent.strip() for agent in agents.split(',')]
-    valid_agents = ["defesa", "acusacao", "pesquisa", "decisoes", "relator"]
+    valid_agents = ["defesa", "acusacao", "pesquisa", "decisoes", "web", "relator"]
 
     for agent in agent_list:
         if agent not in valid_agents:
@@ -218,3 +219,71 @@ async def list_tasks():
             for task_id, task in tasks_storage.items()
         ]
     }
+
+@router.get("/result/{task_id}/agent/{agent_name}/pdf")
+async def download_agent_pdf(task_id: str, agent_name: str):
+    """
+    Baixar resultado de um agente específico em PDF
+    """
+    if task_id not in tasks_storage:
+        raise HTTPException(status_code=404, detail="Tarefa não encontrada")
+
+    task = tasks_storage[task_id]
+
+    if task.status != "completed":
+        raise HTTPException(status_code=400, detail="Tarefa ainda não foi concluída")
+
+    if agent_name not in task.results:
+        raise HTTPException(status_code=404, detail=f"Resultado do agente '{agent_name}' não encontrado")
+
+    try:
+        # Gerar PDF
+        pdf_service = PDFGenerationService()
+        pdf_buffer = pdf_service.generate_agent_pdf(agent_name, task.results[agent_name], task_id)
+
+        # Definir nome do arquivo
+        filename = f"{agent_name}_{task_id}.pdf"
+
+        # Retornar como download
+        return StreamingResponse(
+            pdf_buffer,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao gerar PDF: {str(e)}")
+
+@router.get("/result/{task_id}/pdf")
+async def download_combined_pdf(task_id: str):
+    """
+    Baixar todos os resultados combinados em um PDF consolidado
+    """
+    if task_id not in tasks_storage:
+        raise HTTPException(status_code=404, detail="Tarefa não encontrada")
+
+    task = tasks_storage[task_id]
+
+    if task.status != "completed":
+        raise HTTPException(status_code=400, detail="Tarefa ainda não foi concluída")
+
+    if not task.results:
+        raise HTTPException(status_code=404, detail="Nenhum resultado encontrado para esta tarefa")
+
+    try:
+        # Gerar PDF consolidado
+        pdf_service = PDFGenerationService()
+        pdf_buffer = pdf_service.generate_combined_pdf(task.results, task_id)
+
+        # Definir nome do arquivo
+        filename = f"analise_completa_{task_id}.pdf"
+
+        # Retornar como download
+        return StreamingResponse(
+            pdf_buffer,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao gerar PDF consolidado: {str(e)}")

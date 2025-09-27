@@ -57,6 +57,13 @@ python-jose[cryptography]>=3.3.0
 # WebSockets (para progress em tempo real)
 websockets>=12.0
 
+# Pesquisa web inteligente
+tavily-python>=0.3.3
+
+# Geração de PDF
+reportlab>=4.0.4
+weasyprint>=60.0
+
 # Desenvolvimento
 pytest>=7.4.0
 pytest-asyncio>=0.21.0
