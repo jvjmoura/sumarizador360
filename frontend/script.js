@@ -408,7 +408,7 @@ function createAgentResultCard(agentKey, agentName, result) {
             <div class="result-header">
                 <h3>${agentName}</h3>
                 <button class="btn-download" onclick="downloadAgentPDF('${agentKey}', '${agentName}')" title="Baixar PDF do ${agentName}">
-                    <i class="fas fa-file-pdf"></i>
+                    <i class="fa-solid fa-download"></i>
                 </button>
             </div>
             <div class="result-content">
