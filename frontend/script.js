@@ -1,5 +1,6 @@
 // ===== CONFIGURAÇÕES GLOBAIS =====
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+// Detectar automaticamente a URL da API (funciona em localhost e produção)
+const API_BASE_URL = window.location.origin + '/api/v1';
 let currentTaskId = null;
 let progressInterval = null;
 

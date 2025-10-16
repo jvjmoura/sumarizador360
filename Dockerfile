@@ -26,5 +26,5 @@ WORKDIR /app/backend
 # Expose port (Railway will set PORT env var)
 EXPOSE 8000
 
-# Start command
-CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}
+# Start command with increased limits
+CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --timeout-keep-alive 300 --limit-max-requests 0 --limit-concurrency 100
