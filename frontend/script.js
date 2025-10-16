@@ -106,10 +106,10 @@ function handleFile(file) {
         return;
     }
 
-    // Validar tamanho (50MB)
-    const maxSize = 50 * 1024 * 1024;
+    // Validar tamanho (100MB)
+    const maxSize = 100 * 1024 * 1024;
     if (file.size > maxSize) {
-        showNotification('Arquivo muito grande! Máximo 50MB.', 'error');
+        showNotification('Arquivo muito grande! Máximo 100MB.', 'error');
         return;
     }
 

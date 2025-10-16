@@ -52,12 +52,18 @@ async def upload_file(
         results={}
     )
 
-    # Salvar arquivo temporário
+    # Salvar arquivo temporário (usar /tmp que funciona no Railway)
     try:
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
-            content = await file.read()
+        content = await file.read()
+        
+        # Criar arquivo temporário no /tmp do sistema
+        import uuid
+        temp_filename = f"/tmp/{uuid.uuid4()}.pdf"
+        
+        with open(temp_filename, 'wb') as tmp_file:
             tmp_file.write(content)
-            pdf_path = tmp_file.name
+        
+        pdf_path = temp_filename
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao salvar arquivo: {str(e)}")
 
