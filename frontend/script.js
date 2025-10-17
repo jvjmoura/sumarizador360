@@ -1,6 +1,5 @@
 // ===== CONFIGURAÇÕES GLOBAIS =====
-// Detectar automaticamente a URL da API (funciona em localhost e produção)
-const API_BASE_URL = window.location.origin + '/api/v1';
+const API_BASE_URL = 'http://localhost:8000/api/v1';
 let currentTaskId = null;
 let progressInterval = null;
 
@@ -106,10 +105,10 @@ function handleFile(file) {
         return;
     }
 
-    // Validar tamanho (100MB)
-    const maxSize = 100 * 1024 * 1024;
+    // Validar tamanho (50MB)
+    const maxSize = 50 * 1024 * 1024;
     if (file.size > maxSize) {
-        showNotification('Arquivo muito grande! Máximo 100MB.', 'error');
+        showNotification('Arquivo muito grande! Máximo 50MB.', 'error');
         return;
     }
 

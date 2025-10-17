@@ -19,9 +19,7 @@ app = FastAPI(
     description="API para análise automatizada de processos jurídicos com IA",
     version="2.0.0",
     docs_url="/docs",
-    redoc_url="/redoc",
-    # Aumentar limite de tamanho de arquivo para 100MB
-    max_request_size=100 * 1024 * 1024
+    redoc_url="/redoc"
 )
 
 # Configurar CORS
